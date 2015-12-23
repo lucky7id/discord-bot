@@ -69,7 +69,7 @@ let Commands =  class Commands extends Object {
             cmdCount: 0,
             throttled: false,
             timer: timer(user, 10000).oninterval(() => {
-                console.log(`clearing ${user}'s timer'`)
+                console.log(`clearing ${user}'s timer'`);
                 this.clearUserCmdCount(user);
             })
         };
