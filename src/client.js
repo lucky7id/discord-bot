@@ -21,6 +21,7 @@ module.exports = class Client extends Discord {
         if (debug) { this.on('debug', this.debug); }
 
         this.on('message', this.handleMessage);
+        this.on('presence', this.handlePresence);
     }
 
     handleMessage(user, userID, channelID, message, rawEvent) {
@@ -28,6 +29,17 @@ module.exports = class Client extends Discord {
             let params = getParamsFromArgs(user, userID, channelID, message, rawEvent);
 
             this.commands.exec(message, params);
+        }
+    }
+
+    handlePresence(user, userID, status, rawEvent) {
+        switch (status) {
+            case 'idle':
+            case 'away':
+                this.commands.removeUser(user);
+                break;
+            default:
+                return;
         }
     }
 

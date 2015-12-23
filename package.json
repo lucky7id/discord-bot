@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/lucky7id/discord-bot#readme",
   "dependencies": {
-    "discord.io": "^1.5.2"
+    "discord.io": "^1.5.2",
+    "node-timer": "^0.3.0"
   }
 }
