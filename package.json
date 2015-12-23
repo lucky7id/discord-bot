@@ -1,0 +1,22 @@
+{
+  "name": "discord",
+  "version": "1.0.0",
+  "description": "Just doodling around with the unofficial discord API :)",
+  "main": "src/bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucky7id/discord-bot.git"
+  },
+  "author": "Brandon Thomas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lucky7id/discord-bot/issues"
+  },
+  "homepage": "https://github.com/lucky7id/discord-bot#readme",
+  "dependencies": {
+    "discord.io": "^1.5.2"
+  }
+}
