@@ -25,7 +25,8 @@ module.exports = class Client extends Discord {
     }
 
     handleMessage(user, userID, channelID, message, rawEvent) {
-        if (this.commands.exists(message)) {
+        if (user === this.username) { return; }
+        if (this.commands.getCmd(message)) {
             let params = getParamsFromArgs(user, userID, channelID, message, rawEvent);
 
             this.commands.exec(message, params);
@@ -36,7 +37,7 @@ module.exports = class Client extends Discord {
         switch (status) {
             case 'idle':
             case 'away':
-                this.commands.removeUser(user);
+                this.commands.throttler.removeUser(user);
                 break;
             default:
                 return;
