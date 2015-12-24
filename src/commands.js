@@ -117,7 +117,6 @@ let startupCmds = [
 
                     message = message.replace(/cat/gi, 'kiji');
                     message = message.replace(/kitten/gi, 'young kiji');
-                    message = 'When your kijis rubs up against you, she is actually marking you as "hers" with her scent. If your kiji pushes his face against your head, it is a sign of acceptance and affection.';
                     console.log(`Kiji fact found: ${message}`);
                     this.bot.sendMessage({
                         typing: true,
