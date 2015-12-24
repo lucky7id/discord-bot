@@ -17,9 +17,10 @@ module.exports = class Client extends Discord {
         this.commands = commands.wire(this);
     }
 
-    start(debug) {
+    start(debug, shell) {
         if (debug) { this.on('debug', this.debug); }
 
+        this.shell = shell;
         this.on('message', this.handleMessage);
         this.on('presence', this.handlePresence);
     }
@@ -36,15 +37,25 @@ module.exports = class Client extends Discord {
     handlePresence(user, userID, status, rawEvent) {
         switch (status) {
             case 'idle':
-            case 'away':
+            case 'offline':
                 this.commands.throttler.removeUser(user);
                 break;
             default:
+                this.log(`user ${user} came online`)
                 return;
         }
     }
 
     debug() {
-        console.log(arguments);
+        this.log(JSON.stringify(arguments));
+    }
+
+    log(msg) {
+        console.log(`\n\nSERVER LOG: ${msg}\n`);
+
+        if (this.shell) {
+            this.shell.prompt(true);
+            return;
+        }
     }
 };

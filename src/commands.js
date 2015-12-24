@@ -46,7 +46,8 @@ let Commands =  class Commands extends Object {
         if (result) { return result; }
 
         keywords = this.keywords.filter(word => {
-            return cmd.indexOf(word) !== -1;
+            var reg = new RegExp(word, 'gi');
+            return reg.test(cmd);
         });
 
         return keywords.length && this.cmds[keywords[0]];
@@ -66,6 +67,15 @@ let Commands =  class Commands extends Object {
         this.throttler.throttleUser(params.user);
     }
 
+    canExec(cmd, params) {
+            if (!cmd.roles && !cmd.users) {
+                return true;
+            }
+
+            if (cmd.roles) {
+
+            }
+    }
 
     toString() {
         let helpText = Object.keys(this.cmds)
@@ -114,12 +124,30 @@ let startupCmds = [
                 (e, res, body) => {
                     if (res.statusCode !== 200) { return; }
                     let message = JSON.parse(body).facts[0];
+                    let log;
 
-                    message = message.replace(/cat/gi, 'kiji');
+                    message = message.replace(/\bcat[s]{0,1}\b/gi, 'kiji');
                     message = message.replace(/kitten/gi, 'young kiji');
-                    console.log(`Kiji fact found: ${message}`);
+                    this.bot.log(`Kiji fact found: ${message}`);
                     this.bot.sendMessage({
-                        typing: true,
+                        to: params.channelID,
+                        message: message
+                    });
+                });
+        }
+    }, {
+        name: 'pride',
+        scope: '*',
+        description: 'secret',
+        fn: function(params) {
+            request.get('http://api.icndb.com/jokes/random/',
+                (e, res, body) => {
+                    if (res.statusCode !== 200) { return; }
+                    let message = JSON.parse(body).value.joke.toString();
+
+                    message = message.replace(/Chuck Norris/gi, 'Pride');
+                    this.bot.log(`Pride fact found: ${message}`);
+                    this.bot.sendMessage({
                         to: params.channelID,
                         message: message
                     });

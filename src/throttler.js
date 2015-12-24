@@ -12,7 +12,7 @@ module.exports = class Throttler extends Object {
             cmdCount: 0,
             throttled: false,
             timer: this.timer(user, 10000).oninterval(() => {
-                console.log(`clearing ${user}'s timer'`);
+                this.cmd.bot.log(`clearing ${user}'s timer`);
                 this.clearUserCmdCount(user);
             })
         };
@@ -25,7 +25,7 @@ module.exports = class Throttler extends Object {
 
         userData.timer.end();
         delete this.users[user];
-        console.log(`removed user ${user}`);
+        this.cmd.bot.log(`removed user ${user}`);
     }
 
     throttleUser(user) {
