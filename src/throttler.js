@@ -7,6 +7,10 @@ module.exports = class Throttler extends Object {
         this.timer = timer;
     }
 
+    isMe(user) {
+        return user === this.cmd.bot.secrets.me
+    }
+
     getNewUser(user) {
         return {
             cmdCount: 0,
@@ -29,6 +33,8 @@ module.exports = class Throttler extends Object {
     }
 
     throttleUser(user) {
+        if (this.isMe(user)) { return false;}
+
         if (!this.users[user]) {
             this.users[user] = this.getNewUser(user);
         }

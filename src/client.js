@@ -12,9 +12,10 @@ function getParamsFromArgs(user, userID, channelID, message, rawEvent) {
 };
 
 module.exports = class Client extends Discord {
-    constructor(commands, config) {
+    constructor(commands, config, secrets) {
         super(config);
         this.commands = commands.wire(this);
+        this.secrets = secrets;
     }
 
     start(debug, shell) {
@@ -41,13 +42,16 @@ module.exports = class Client extends Discord {
                 this.commands.throttler.removeUser(user);
                 break;
             default:
-                this.log(`user ${user} came online`)
+                //this.log(`user ${user} came online`)
                 return;
         }
     }
 
-    debug() {
-        this.log(JSON.stringify(arguments));
+    debug(m) {
+        if (m.t === 'MESSAGE_CREATE') {
+            this.log(JSON.stringify(m));
+        }
+        //this.log(JSON.stringify(arguments));
     }
 
     log(msg) {

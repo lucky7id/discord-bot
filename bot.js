@@ -2,8 +2,11 @@
 var Client = require('./src/client');
 var commands = require('./src/commands');
 var config = require('./config');
+var secrets = require('./secrets');
 var readline = require('readline');
-var bot = new Client(commands, config);
+var bot = new Client(commands, config, secrets);
+
+let channels = secrets.channels;
 
 let rl = readline.createInterface(process.stdin, process.stdout);
 bot.start(false, rl);
@@ -18,10 +21,29 @@ rl.on('line', function(line) {
 
     if (/^say\b/.test(line)) {
         let msg = line.replace('say ', '');
+        let channelIdReg = /^(#[\w-]+)\s{1}/;
+        let to = secrets.channels['#default'];
+
+        if (channelIdReg.test(msg)) {
+            let channel = channelIdReg.exec(msg)[0].trim();
+
+            to = channels[channel];
+            msg = msg.replace(channelIdReg, '');
+        }
+
         bot.sendMessage({
-            to: '117487550733615105',
+            to: to,
             message: msg
         });
     }
-    rl.prompt();
+
+    if (/^channels$/.test(line)) {
+        bot.log(JSON.stringify(channels));
+    }
+
+    if (/^state$/.test(line)) {
+        bot.log(Object.keys(bot));
+    }
+
+    rl.prompt(true);
 });
