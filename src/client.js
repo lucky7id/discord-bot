@@ -1,5 +1,6 @@
 'use strict';
 var Discord = require('discord.io');
+var pretty = require('prettyjson')
 
 function getParamsFromArgs(user, userID, channelID, message, rawEvent) {
     return {
@@ -47,15 +48,25 @@ module.exports = class Client extends Discord {
         }
     }
 
+    findMe() {
+        let me = this.secrets.id;
+        return Object.keys(this.servers).reduce((prev, current) => {
+            let channel = this.servers[current].members[me]
+            this.log(pretty.render(this.servers[current].members[me]), prev)
+            if (prev) return prev;
+
+            return (channel && channel.voice_channel_id) || false;
+        }, false)
+    }
+
     debug(m) {
         if (m.t === 'MESSAGE_CREATE') {
             this.log(JSON.stringify(m));
         }
-        //this.log(JSON.stringify(arguments));
     }
 
-    log(msg) {
-        console.log(`\n\nSERVER LOG: ${msg}\n`);
+    log() {
+        console.log(`\n\nSERVER LOG: ${Array.prototype.slice.apply(arguments)}\n`);
 
         if (this.shell) {
             this.shell.prompt(true);

@@ -3,6 +3,8 @@ var Client = require('./src/client');
 var commands = require('./src/commands');
 var config = require('./config');
 var secrets = require('./secrets');
+var pretty = require('prettyjson');
+var fs = require('fs')
 var readline = require('readline');
 var bot = new Client(commands, config, secrets);
 
@@ -42,7 +44,14 @@ rl.on('line', function(line) {
     }
 
     if (/^state$/.test(line)) {
-        bot.log(Object.keys(bot));
+        let output = {
+            servers: bot.servers,
+            connected: bot.connected,
+        };
+
+        fs.writeFile('./state.json', JSON.stringify(bot.servers), () => {
+            bot.log(JSON.stringify(arguments));
+        });
     }
 
     rl.prompt(true);

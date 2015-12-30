@@ -17,12 +17,13 @@ let UserCommands =  class Commands extends BaseCommand {
         this.bot = this.context;
 
         if (!this.bot) { throw new Error('Commands requires an instace of Discord') }
-        if (!parsed) { throw new Error(`Command ${cmd} does not exist`);}
+        if (!parsed) { throw new Error(`Command ${parsed} does not exist`);}
 
         if (this.throttler.isThrottled(params.user)) {
             return;
         }
 
+        params.message = params.message.replace(parsed.name, '');
         parsed.fn.call(this, params);
         this.throttler.throttleUser(params.user);
     }
@@ -31,6 +32,13 @@ let UserCommands =  class Commands extends BaseCommand {
         this.bot.sendMessage({
             to: params.channelID,
             message: 'Nice try guy.'
+        });
+    }
+
+    removeCmdHistory (params) {
+        this.bot.deleteMessage({
+            channel: params.channelID,
+            messageID: params.rawEvent.d.id
         });
     }
 };
@@ -97,6 +105,26 @@ let startupCmds = [
                 });
         }
     }, {
+        name: 'haichu',
+        description: 'Use at your own risk',
+        scope: '*',
+        fn: function(params) {
+            fs.readdir('./assets/', (error, files) => {
+                let haichulist = files.filter((item) => {
+                    return /haichu/i.test(item);
+                });
+                let rand = Math.floor(Math.random() * haichulist.length);
+                let desu = haichulist[rand];
+
+                this.bot.uploadFile({
+                    channel: params.channelID,
+                    file: fs.createReadStream(`./assets/${desu}`)
+                }, (response) => {
+                    this.bot.log(response);
+                });
+            });
+        }
+    }, {
         name: '/join',
         description: 'Bot will attempt to join a server provided a link',
         fn: function(params) {
@@ -123,8 +151,8 @@ let startupCmds = [
             this.bot.uploadFile({
                 channel: params.channelID,
                 file: fs.createReadStream('./assets/facesit.jpg')
-            }, (response) => { //CB Optional
-                this.bot.log(response);
+            }, (response) => {
+                this.removeCmdHistory(params);
             });
         }
     }, {
@@ -138,16 +166,11 @@ let startupCmds = [
                 let rand = Math.floor(Math.random() * desulist.length);
                 let desu = desulist[rand];
 
-                this.bot.log(`rand: ${rand},
-                    desu: ${JSON.stringify(desu)},
-                    len: ${desulist.length}`
-                );
-
                 this.bot.uploadFile({
                     channel: params.channelID,
                     file: fs.createReadStream(`./assets/${desu}`)
                 }, (response) => {
-                    this.bot.log(response);
+                    this.removeCmdHistory(params);
                 });
             });
         }
@@ -155,12 +178,60 @@ let startupCmds = [
         name: '/spam',
         description: 'secret',
         fn: function(params) {
-            let cmdReg = /(\/\w+\b)/;
+            let cmd = this.getCmd(params.message.replace(/\s/, ''));
+            let times = /(\b\d+\b)/.exec(params.message);
+            let intFound = (times && times.length);
 
-            if (!this.throttler.isMe(params.user)) { this.sendError(params); }
+            if (!this.throttler.isMe(params.user)) {
+                this.sendError(params);
+                return;
+            }
 
+            if (!cmd || !intFound) {
+                this.sendError(params);
+                return;
+            }
+
+            this.removeCmdHistory(params);
+
+            for (var i = 0; i < times[0]; i++) {
+                this.exec(cmd.name, params);
+            }
         }
-    }
+    }, {
+        name: '/triggered',
+        description: 'It happens',
+        fn: function(params) {
+            this.bot.uploadFile({
+                channel: params.channelID,
+                file: fs.createReadStream('./assets/triggered.gif')
+            }, (response) => {
+                this.bot.log(response);
+            });
+        }
+    }, {
+        name: '/voice',
+        description: 'voice test',
+        fn: function(params) {
+            let voiceChannel = this.bot.findMe();
+            this.bot.joinVoiceChannel(voiceChannel, () => {
+                this.voiceChannel = voiceChannel;
+            });
+
+            this.removeCmdHistory(params)
+        }
+    },
+    {
+        name: '/leavevoice',
+        description: 'voice test',
+        fn: function(params) {
+            this.bot.leaveVoiceChannel(this.voiceChannel, () => {
+                this.voiceChannel = false;
+            });
+
+            this.removeCmdHistory(params)
+        }
+    },
 ];
 
 commands.addCmds(startupCmds);

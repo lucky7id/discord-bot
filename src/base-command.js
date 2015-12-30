@@ -54,9 +54,10 @@ let BaseCommands =  class BaseCommands extends Object {
     exec (cmd, params) {
         let parsed = this.getCmd(cmd);
 
-        if (!this.context) {throw new Error('Commands require a context to run')}
-        if (!parsed) { throw new Error(`Command ${cmd} does not exist`);}
+        if (!this.context) {throw new Error('Commands require a context to run'); }
+        if (!parsed) { throw new Error(`Command ${parsed} does not exist`); }
 
+        parsed.message = parsed.message.replace(cmd.name + ' ', '');
         parsed.fn.call(this, params);
     }
 
@@ -83,6 +84,8 @@ let BaseCommands =  class BaseCommands extends Object {
 
         return `\`\`\`Avialable Commands: \n${helpText}\n\`\`\``;
     }
+
+
 };
 
 module.exports = BaseCommands;
