@@ -4,9 +4,10 @@ var commands = require('./src/commands');
 var config = require('./config');
 var secrets = require('./secrets');
 var pretty = require('prettyjson');
+var AudioCtrl = require('./src/audio');
 var fs = require('fs')
 var readline = require('readline');
-var bot = new Client(commands, config, secrets);
+var bot = new Client(commands, config, secrets, AudioCtrl);
 
 let channels = secrets.channels;
 
@@ -52,6 +53,11 @@ rl.on('line', function(line) {
         fs.writeFile('./state.json', JSON.stringify(bot.servers), () => {
             bot.log(JSON.stringify(arguments));
         });
+    }
+
+    if (/^audiostate$/.test(line)) {
+        bot.log(pretty.render(bot.audioCtrl.state))
+        bot.log(pretty.render(bot.audioCtrl.queue))
     }
 
     rl.prompt(true);

@@ -13,10 +13,11 @@ function getParamsFromArgs(user, userID, channelID, message, rawEvent) {
 };
 
 module.exports = class Client extends Discord {
-    constructor(commands, config, secrets) {
+    constructor(commands, config, secrets, AudioCtrl) {
         super(config);
         this.commands = commands.wire(this);
         this.secrets = secrets;
+        this.audioCtrl = new AudioCtrl(this);
     }
 
     start(debug, shell) {
@@ -52,7 +53,7 @@ module.exports = class Client extends Discord {
         let me = this.secrets.id;
         return Object.keys(this.servers).reduce((prev, current) => {
             let channel = this.servers[current].members[me]
-            this.log(pretty.render(this.servers[current].members[me]), prev)
+
             if (prev) return prev;
 
             return (channel && channel.voice_channel_id) || false;

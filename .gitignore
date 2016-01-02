@@ -2,3 +2,6 @@
 config.json
 secrets.json
 tenc
+state.json
+*.log
+current.txt

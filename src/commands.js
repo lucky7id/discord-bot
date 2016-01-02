@@ -3,12 +3,16 @@ let timer = require('node-timer');
 let request = require('request');
 let Throttler = require('./throttler');
 let BaseCommand = require('./base-command');
+let ytube = require('youtube-dl');
 let fs = require('fs');
+let pretty = require('prettyjson');
+let fork = require('child_process').fork;
 
 let UserCommands =  class Commands extends BaseCommand {
     constructor() {
         super();
         this.throttler = new Throttler(this, this.users, timer);
+        this.threadFinders = {};
     }
 
     exec (cmd, params) {
@@ -32,7 +36,7 @@ let UserCommands =  class Commands extends BaseCommand {
         this.bot.sendMessage({
             to: params.channelID,
             message: 'Nice try guy.'
-        });
+    });
     }
 
     removeCmdHistory (params) {
@@ -210,28 +214,219 @@ let startupCmds = [
             });
         }
     }, {
-        name: '/voice',
+        name: '/summon',
         description: 'voice test',
         fn: function(params) {
             let voiceChannel = this.bot.findMe();
-            this.bot.joinVoiceChannel(voiceChannel, () => {
-                this.voiceChannel = voiceChannel;
-            });
 
-            this.removeCmdHistory(params)
+            this.bot.joinVoiceChannel(voiceChannel, () => {
+                this.bot.audioCtrl.currentChannel = voiceChannel;
+                this.removeCmdHistory(params);
+            });
         }
-    },
-    {
+    }, {
         name: '/leavevoice',
         description: 'voice test',
         fn: function(params) {
-            this.bot.leaveVoiceChannel(this.voiceChannel, () => {
-                this.voiceChannel = false;
+            let channel = this.bot.audioCtrl.currentChannel;
+            this.bot.leaveVoiceChannel(channel, () => {
+                channel = false;
+                this.removeCmdHistory(params)
+            });
+        }
+    }, {
+        name: '/play',
+        description: 'Adds a video to the queue',
+        fn: function (params) {
+            this.bot.audioCtrl
+                .addVideo(params.message)
+                .then((video) =>{
+                    this.bot.sendMessage({
+                        to: params.channelID,
+                        message: `<@${params.userID}> added: \`${video.title} - ${video.url}\``
+                    });
+                    this.removeCmdHistory(params);
+                }, (error) => {
+                    this.bot.log(pretty.render(error));
+                    this.sendError(params);
+                })
+        }
+    }, {
+        name: '/skip',
+        description: 'skips current playing song',
+        fn: function (params) {
+            this.bot.audioCtrl.skip();
+            this.removeCmdHistory(params);
+        }
+    }, {
+        name: '/queue',
+        description: 'shows a list of current songs',
+        fn: function (params) {
+            if (!this.bot.audioCtrl.currentSong) {return this.sendError(params);}
+
+            let current = this.bot.audioCtrl.currentSong.title;
+            let songList = this.bot.audioCtrl.queue
+                .map((song, index)=>{
+                    return `${index + 1}. ${song.title}\r`
+                }).join('');
+
+            let message = `\`\`\`Current Song: ${current}\n\r${songList}\`\`\``;
+
+            this.bot.sendMessage({
+                to: params.channelID,
+                message: message
+            })
+        }
+    }, {
+        name: '/radio',
+        description: 'toggles the radio',
+        fn: function(params) {
+            let ctrl = this.bot.audioCtrl;
+
+            ctrl.radioEnabled = !ctrl.radioEnabled;
+            if (ctrl.radioEnabled) { this.bot.audioCtrl.radio(); }
+
+            this.bot.sendMessage({
+                to: params.channelID,
+                message: `<@${params.userID}> ${ctrl.radioEnabled ? 'enabled' : 'disabled'} the radio`
             });
 
-            this.removeCmdHistory(params)
+            this.removeCmdHistory(params);
         }
-    },
+    }, {
+        name: '/add',
+        description: 'Alias for /play',
+        fn: function (params) {
+            params.message = params.message.replace('/add', '/play');
+            this.exec('/play', params);
+        }
+    }, {
+        name: '/threadfinder',
+        description: 'secret',
+        fn: function (params) {
+            let proc;
+            let board = /board:(\w+)/.exec(params.message);
+            let keywords = /keywords:([\w,]+)/.exec(params.message);
+
+            if (!this.throttler.isMe(params.user)) {
+                return this.sendError(params);
+            }
+
+            if (!board || !keywords) {
+                return this.sendError(params);
+            }
+            this.bot.log(board, keywords);
+            board = board[1];
+            keywords = keywords[1].split(',');
+
+            proc = fork(`./4chan.js`, [
+                `-b${board}`,
+                `-k${keywords.join(' ')}`,
+                `-c${params.channelID}`
+            ]);
+
+            proc.on('message', (data) => {
+                this.bot.sendMessage({
+                    to: data.channel,
+                    message: `\`I found some bread: ${data.com}\`
+                    \r${data.url}`
+                })
+            });
+
+            this.threadFinders[new Date().getTime()] = {
+                board: board[0],
+                keywords: keywords,
+                proc: proc,
+                channel: params.channel
+            }
+        }
+    }, {
+        name: '/notify',
+        description: '/notify <threadWatcherId> sends you a PM when sh0taBot finds a thread matching the selected keywords',
+        fn: function (params) {
+            let id = /(\d+)\b/.exec(params.message);
+            let watch;
+
+            this.bot.log(id, params.message)
+            if (!id || !this.threadFinders[id[1]]) {
+                return this.sendError(params);
+            }
+            watch = this.threadFinders[id[1]];
+            watch.proc.send({
+                type: 'ADD_WATCHER',
+                channelId: params.userID
+            });
+
+            this.bot.sendMessage({
+                to: params.userID,
+                message: `You are now watching ${id[1]} - /${watch.board}/ ${watch.keywords.join(' ,')}
+                \r type \`/stopnotify ${id[1]}\` to stop watching`
+            });
+        }
+    }, {
+        name: '/stopnotify',
+        description: '/stopnotify <threadWatcherId> stops notifying you of threads',
+        fn: function (params) {
+            let id = /(\d+)\b/.exec(params.message)
+            let watch;
+
+            if (!id || !this.threadFinders[id[1]]) {
+                return this.sendError(params);
+            }
+
+            watch = this.threadFinders[id[1]];
+            watch.proc.send({
+                type: 'REMOVE_WATCHER',
+                channelId: params.userID
+            });
+
+            this.bot.sendMessage({
+                to: params.userID,
+                message: `You have stopped watching ${id[1]} - /${watch.board}/ ${watch.keywords.join(' ,')}
+                \r type \`/notify ${id[1]}\` to start watching again`
+            });
+        }
+    }, {
+        name: '/threads',
+        description: 'Lists current threads being watched for',
+        fn: function (params) {
+            let watches = Object.keys(this.threadFinders)
+                .filter(id => {
+                    let watch = this.threadFinders[id];
+                    return watch.channel === params.channel;
+                })
+                .map(id => {
+                    let watch = this.threadFinders[id];
+                    return `ID: ${id} /${watch.board}/ - ${watch.keywords.join(' ')}`
+            });
+            let text = `\`\`\` I am looking for\n\r${watches}\`\`\` `
+
+            this.bot.sendMessage({
+                to: params.channelID,
+                message: text
+            })
+        }
+    }, {
+        name: '/killwatch',
+        description: 'secret',
+        fn: function(params) {
+            let id = /(\d+)\b/.exec(params.message);
+            let watch;
+
+            if (!this.throttler.isMe(params.user)) {
+                return this.sendError(params);
+            }
+
+            if (!id || !this.threadFinders[id[1]]) {
+                return this.sendError(params);
+            }
+
+            watch = this.threadFinders[id[1]];
+            watch.proc.kill('SIGINT');
+
+            delete this.threadFinders[id[1]];
+        }
+    }
 ];
 
 commands.addCmds(startupCmds);
