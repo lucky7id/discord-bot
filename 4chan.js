@@ -41,7 +41,8 @@ class ThreadFinder {
 
     fetchBoard () {
         this.board.catalog((err, pages) => {
-            if (err) { return; }
+            if (err || !pages.length) { return; }
+
             this.handleResult(this.parse(pages));
         });
     }
@@ -68,7 +69,7 @@ class ThreadFinder {
         if (!parsed.length) {return; }
 
         for (let thread of parsed) {
-            this.notify(thread, channel);
+            this.notify(thread, this.args.channel);
             this.notifyWatchers(thread, this.watchers);
         }
     }
