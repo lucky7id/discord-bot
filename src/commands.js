@@ -323,7 +323,7 @@ let startupCmds = [
                 `-b${board}`,
                 `-k${keywords.join(',')}`,
                 `-c${params.channelID}`
-            ]);
+            ], {stdio: ['pipe', 'pipe', 'pipe']});
 
             proc.on('message', (data) => {
                 this.bot.sendMessage({
