@@ -337,7 +337,7 @@ let startupCmds = [
                 board: board[0],
                 keywords: keywords,
                 proc: proc,
-                channel: params.channel
+                channel: params.channelID
             }
         }
     }, {
@@ -393,10 +393,9 @@ let startupCmds = [
             let watches = Object.keys(this.threadFinders)
                 .filter((id) => {
                     let watch = this.threadFinders[id];
-                    this.bot.log(watch.channel, params.channelID);
                     return watch.channel === params.channelID;
                 })
-                .map((id) => {
+                .map((watch id) => {
                     let watch = this.threadFinders[id];
                     return `ID: ${id} /${watch.board}/ - ${watch.keywords.join(' ')}`
             });
