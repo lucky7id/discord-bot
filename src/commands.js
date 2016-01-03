@@ -391,11 +391,11 @@ let startupCmds = [
         description: 'Lists current threads being watched for',
         fn: function (params) {
             let watches = Object.keys(this.threadFinders)
-                .filter((id) => {
+                .filter(id => {
                     let watch = this.threadFinders[id];
                     return watch.channel === params.channelID;
                 })
-                .map((watch id) => {
+                .map(id => {
                     let watch = this.threadFinders[id];
                     return `ID: ${id} /${watch.board}/ - ${watch.keywords.join(' ')}`
             });
