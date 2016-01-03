@@ -9,7 +9,7 @@ parser.addArgument(['-b'], {dest: 'board'});
 parser.addArgument(['-k'], {
     dest: 'keywords',
     type: (arg) => {
-        return arg.split(' ')
+        return arg.split(',')
     }
 });
 
@@ -108,5 +108,9 @@ class ThreadFinder {
         }
     }
 }
+
+process.on('error', (error) => {
+    console.log(error)
+});
 
 const threadFinder = new ThreadFinder();

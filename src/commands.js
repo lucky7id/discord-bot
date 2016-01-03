@@ -301,7 +301,7 @@ let startupCmds = [
             this.exec('/play', params);
         }
     }, {
-        name: '/threadfinder',
+        name: '/watch',
         description: 'secret',
         fn: function (params) {
             let proc;
@@ -315,13 +315,13 @@ let startupCmds = [
             if (!board || !keywords) {
                 return this.sendError(params);
             }
-            this.bot.log(board, keywords);
+
             board = board[1];
             keywords = keywords[1].split(',');
 
             proc = fork(`./4chan.js`, [
                 `-b${board}`,
-                `-k${keywords.join(' ')}`,
+                `-k${keywords.join(',')}`,
                 `-c${params.channelID}`
             ]);
 
@@ -335,6 +335,14 @@ let startupCmds = [
 
             proc.on('error', (error) =>{
                 this.bot.log(pretty.render(error));
+            });
+
+            proc.stdout.on('data', function (data) {
+              this.bot.log('' + data);
+            });
+
+            proc.stderr.on('data', function (data) {
+              this.bot.log('grep stderr: ' + data);
             });
 
             this.threadFinders[new Date().getTime()] = {
