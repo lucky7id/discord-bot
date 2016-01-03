@@ -333,6 +333,10 @@ let startupCmds = [
                 })
             });
 
+            proc.on('error', (error) =>{
+                this.bot.log(pretty.render(error));
+            });
+
             this.threadFinders[new Date().getTime()] = {
                 board: board[0],
                 keywords: keywords,

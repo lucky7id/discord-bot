@@ -29,6 +29,7 @@ class ThreadFinder {
         this.startPoll();
 
         process.on('message', (msg) => {
+            console.log(msg);
             this.handleMessage(msg);
         });
     }
