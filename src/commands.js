@@ -323,7 +323,7 @@ let startupCmds = [
                 `-b${board}`,
                 `-k${keywords.join(',')}`,
                 `-c${params.channelID}`
-            ], {stdio: ['pipe', 'pipe', 'pipe']});
+            ], {stdio: 'inherit'});
 
             proc.on('message', (data) => {
                 this.bot.sendMessage({
@@ -333,15 +333,7 @@ let startupCmds = [
                 })
             });
 
-            proc.stdout.once('readable', () => {
-                proc.stdout.on('data', function (data) {
-                  this.bot.log('' + data);
-                });
-
-                proc.stderr.on('data', function (data) {
-                  this.bot.log('grep stderr: ' + data);
-                });
-            });
+            this.bot.log(pretty.render(proc));
 
             this.threadFinders[new Date().getTime()] = {
                 board: board[0],
