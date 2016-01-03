@@ -333,16 +333,14 @@ let startupCmds = [
                 })
             });
 
-            proc.on('error', (error) =>{
-                this.bot.log(pretty.render(error));
-            });
+            proc.stdout.once('readable', () => {
+                proc.stdout.on('data', function (data) {
+                  this.bot.log('' + data);
+                });
 
-            proc.stdout.on('data', function (data) {
-              this.bot.log('' + data);
-            });
-
-            proc.stderr.on('data', function (data) {
-              this.bot.log('grep stderr: ' + data);
+                proc.stderr.on('data', function (data) {
+                  this.bot.log('grep stderr: ' + data);
+                });
             });
 
             this.threadFinders[new Date().getTime()] = {

@@ -63,7 +63,7 @@ class ThreadFinder {
                 let reg = new RegExp(word, 'gi');
                 return reg.test(thread.com);
             }).length
-        })
+        });
     }
 
     handleResult(parsed) {
