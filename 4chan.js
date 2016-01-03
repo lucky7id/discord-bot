@@ -68,10 +68,21 @@ class ThreadFinder {
         if (!parsed.length) {return; }
 
         for (let thread of parsed) {
-            thread.url = `https://boards.4chan.org/${this.args.board}/thread/${thread.no}`
-            thread.channel = this.args.channel;
-            this.known.push(thread.no);
-            process.send(thread);
+            this.notify(thread, channel);
+            this.notifyWatchers(thread, this.watchers);
+        }
+    }
+
+    notify (thread, channel) {
+        thread.url = `https://boards.4chan.org/${this.args.board}/thread/${thread.no}`
+        thread.channel = channel;
+        this.known.push(thread.no);
+        process.send(thread);
+    }
+
+    notifyWatchers (thread, watchers) {
+        for (let watcher of watchers) {
+            this.notify(thread, watcher);
         }
     }
 

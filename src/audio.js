@@ -119,7 +119,7 @@ module.exports = class AudioController {
         let videoStream;
         let stream = this.stream;
 
-        if (skipped) { this.proc.kill('SIGINT'); }
+        if (skipped) { this.proc.kill('SIGHUP'); }
 
         this.writeStream = fs.createWriteStream('current.txt');
         videoStream = ytube(video.url, [
@@ -150,7 +150,7 @@ module.exports = class AudioController {
                 this.proc.on('close', (code, signal) => {
                     this.currentSong = false;
                     this.isLoading = true;
-                    if (signal === 'SIGINT') { return; }
+                    if (signal === 'SIGHUP') { return; }
 
                     if (this.isNextSong) { return this.play(this.nextSong); }
 
