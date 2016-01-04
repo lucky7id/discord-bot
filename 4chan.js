@@ -17,6 +17,9 @@ parser.addArgument(['-c'], {
     dest: 'channel'
 });
 
+let hearbeat = setInterval(() => {
+
+})
 
 class ThreadFinder {
     constructor() {
@@ -25,7 +28,7 @@ class ThreadFinder {
         this.keywords = this.args.keywords;
         this.known = [];
         this.watchers = [];
-        this.fetchBoard();
+        this.fetchBoard(0);
         this.startPoll();
 
         process.on('message', (msg) => {
@@ -36,13 +39,15 @@ class ThreadFinder {
 
     startPoll () {
         this.poller = setInterval(() => {
-            this.fetchBoard();
+            this.fetchBoard(0);
         }, 300000);
     }
 
-    fetchBoard () {
+    fetchBoard (tries) {
+        if (tries === 3) { return; }
+
         this.board.catalog((err, pages) => {
-            if (err || !pages.length) { return; }
+            if (err || !pages.length) { return this.fetchBoard(tries++); }
 
             this.handleResult(this.parse(pages));
         });
@@ -112,5 +117,7 @@ class ThreadFinder {
 process.on('error', (error) => {
     console.log(error)
 });
+
+
 
 const threadFinder = new ThreadFinder();

@@ -139,7 +139,7 @@ module.exports = class AudioController {
                     '-af', 'volume=0.1',
                     'pipe:1'
                 ],
-                {stdio: ['pipe', 'pipe', 'ignore']});
+                {stdio: ['pipe', 'pipe', 'pipe']});
 
                 this.proc.stdout.once('readable', () => {
                     this.isLoading = false;
@@ -163,7 +163,7 @@ module.exports = class AudioController {
 
                 });
 
-                this.proc.stdout.on('error', (e) => {
+                this.proc.on('error', (e) => {
                     this.context.log(`Error - ${pretty.render(e)}`)
                 });
             });
