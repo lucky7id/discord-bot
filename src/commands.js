@@ -326,6 +326,8 @@ let startupCmds = [
             ], {silent: true});
 
             proc.on('message', (data) => {
+                if (data === 'heartbeat') { return; }
+
                 this.bot.sendMessage({
                     to: data.channel,
                     message: `\`I found some bread: ${data.com}\`
