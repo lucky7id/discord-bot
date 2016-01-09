@@ -70,45 +70,6 @@ let startupCmds = [
             });
         }
     }, {
-        name: 'kiji',
-        scope: '*',
-        description: 'secret',
-        fn: function(params) {
-            request.get('http://catfacts-api.appspot.com/api/facts?number=1',
-                (e, res, body) => {
-                    if (res.statusCode !== 200) { return; }
-                    let message = JSON.parse(body).facts[0];
-
-                    message = message
-                        .replace(/\bcat[s]{0,1}\b/gi, 'kiji')
-                        .replace(/kitten/gi, 'young kiji');
-
-                    this.bot.log(`Kiji fact found: ${message}`);
-                    this.bot.sendMessage({
-                        to: params.channelID,
-                        message: message
-                    });
-                });
-        }
-    }, {
-        name: 'pride',
-        scope: '*',
-        description: 'secret',
-        fn: function(params) {
-            request.get('http://api.icndb.com/jokes/random/',
-                (e, res, body) => {
-                    if (res.statusCode !== 200) { return; }
-                    let message = JSON.parse(body).value.joke.toString();
-
-                    message = message.replace(/Chuck Norris/gi, 'Pride');
-                    this.bot.log(`Pride fact found: ${message}`);
-                    this.bot.sendMessage({
-                        to: params.channelID,
-                        message: message
-                    });
-                });
-        }
-    }, {
         name: 'haichu',
         description: 'Use at your own risk',
         scope: '*',
