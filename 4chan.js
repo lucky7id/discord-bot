@@ -18,8 +18,10 @@ parser.addArgument(['-c'], {
 });
 
 let hearbeat = setInterval(() => {
+    let top = threadFinder.known.shift();
+
     process.send('heartbeat');
-    threadFinder.known = [];
+    threadFinder.known = [top];
 }, 3600000);
 
 class ThreadFinder {
