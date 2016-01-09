@@ -48,7 +48,7 @@ class ThreadFinder {
         if (tries === 3) { return; }
 
         this.board.catalog((err, pages) => {
-            if (err || !pages.length) { return this.fetchBoard(tries++); }
+            if (err || !pages || !pages.length) { return this.fetchBoard(tries++); }
 
             this.handleResult(this.parse(pages));
         });
