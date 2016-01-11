@@ -8,7 +8,9 @@ module.exports = class Throttler extends Object {
     }
 
     isMe(user) {
-        return user === this.cmd.bot.secrets.me
+        let secrets = this.cmd.bot.secrets;
+
+        return (user === secrets.me || user === secrets.id)
     }
 
     getNewUser(user) {

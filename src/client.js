@@ -1,6 +1,7 @@
 'use strict';
-var Discord = require('discord.io');
-var pretty = require('prettyjson')
+let Discord = require('discord.io');
+let pretty = require('prettyjson');
+let fs = require('fs');
 
 function getParamsFromArgs(user, userID, channelID, message, rawEvent) {
     return {
@@ -60,6 +61,32 @@ module.exports = class Client extends Discord {
         }, false)
     }
 
+    findMember (user, members, id) {
+        if (id) { return members[id]; }
+
+        for (let id in members) {
+            if (members[id].user.username.toLowerCase() === user.trim()) {
+                return members[id];
+            }
+        }
+
+        return false;
+    }
+
+    find(user, params, id) {
+        let serverId = this.serverFromChannel(params.channelID);
+        let serverObj = this.servers[serverId];
+
+        if (serverId && serverObj) {
+            return this.findMember(user, serverObj.members, id);
+        }
+
+        for (let server in this.servers) {
+            let found = this.findMember(user, this.servers[server].members, id);
+            if (found) {return found;}
+        }
+    }
+
     debug(m) {
         if (m.t === 'MESSAGE_CREATE') {
             this.log(JSON.stringify(m));
@@ -74,4 +101,66 @@ module.exports = class Client extends Discord {
             return;
         }
     }
+
+    savePerms() {
+        fs.writeFile('secrets.json', JSON.stringify(this.secrets), err =>{
+            if (err) {this.log('permissions failed to save')}
+
+            this.log('successfully updated permissions');
+            this.secrets = require('../secrets');
+        });
+    }
+
+    setPermission(params, save) {
+        let user = this.getPermsForUser(params.userId);
+
+        user.cmds.push(params.cmd);
+        user.nocmds = user.nocmds.filter(cmd => {
+            return cmd !== params.cmd;
+        });
+
+        if (save) {this.savePerms();}
+    }
+
+    unsetPermission(params, save) {
+        let user = this.getPermsForUser(params.userId);
+
+        user.cmds = user.cmds.filter(cmd => {
+            return cmd !== params.cmd;
+        });
+
+        user.nocmds.push(params.cmd);
+
+        if (save) {this.savePerms();}
+    }
+
+    addBlacklist(userId, save) {
+        let blacklist = this.secrets.blacklist;
+
+        blacklist.push(userId);
+
+        if (save) {this.savePerms();}
+    }
+
+    removeBlacklist(userId, save) {
+        let blacklist = this.secrets.blacklist;
+
+        this.secrets.blacklist = blacklist.filter(id => {
+            return id !== userId;
+        });
+        console.log(blacklist);
+        if (save) {this.savePerms();}
+    }
+
+    getPermsForUser(userId) {
+        let permissions = this.secrets.permissions;
+        let user = permissions[userId] = permissions[userId] || {};
+
+        user.cmds = user.cmds || [];
+        user.nocmds = user.nocmds || [];
+
+        return user;
+    }
+
+
 };
