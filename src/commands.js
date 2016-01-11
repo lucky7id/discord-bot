@@ -464,7 +464,7 @@ let startupCmds = [
         }
     }, {
         name: '/unallow',
-        description: 'unallow cmd for a user /allow cmd:<cmd> user:<username>',
+        description: 'unallow cmd for a user /unallow cmd:<cmd> user:<username>',
         fn: function (params) {
             let parsed = this.parseArgs(params.message);
             if (!parsed.cmd || !parsed.user) {return; }

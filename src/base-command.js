@@ -38,7 +38,7 @@ let BaseCommands =  class BaseCommands extends Object {
 
     getCmd (msg) {
         if (!msg) { return; }
-        
+
         let cmd = msg.split(' ')[0];
         let result = this.cmds[cmd];
         let keywords = [];
@@ -75,6 +75,8 @@ let BaseCommands =  class BaseCommands extends Object {
 
         switch (true) {
             case isBlacklisted:
+                return false;
+            case (perms.nocmds.indexOf(cmd.name) !== -1):
                 return false;
             case (perms.cmds.indexOf(cmd.name) !== -1):
                 return true;
