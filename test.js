@@ -1,7 +1,7 @@
 'use strict';
-let ytube = require('youtube-dl');
+let ytdl = require('ytdl-core');
 
-ytube.getInfo(process.argv[2], [], (err, info) => {
+ytdl.getInfo(process.argv[2], [], (err, info) => {
 
     if (err) { process.exit(1); }
 
@@ -9,7 +9,7 @@ ytube.getInfo(process.argv[2], [], (err, info) => {
         title: info.title,
         ext: info.ext,
         duration: info.duration,
-        url: info.webpage_url
+        url: info.loaderUrl
     });
 
     process.exit(0);

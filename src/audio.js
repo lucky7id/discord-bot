@@ -1,8 +1,7 @@
 'use strict';
-let ytube = require('youtube-dl');
+let ytdl = require('ytdl-core');
 let pretty = require('prettyjson');
 let fs = require('fs');
-let Stream = require('stream');
 let Promise = require('promise');
 let spawn = require('child_process').spawn;
 let fork = require('child_process').fork;
@@ -121,52 +120,42 @@ module.exports = class AudioController {
 
         if (skipped) { this.proc.kill('SIGHUP'); }
 
-        this.writeStream = fs.createWriteStream('current.txt');
-        videoStream = ytube(video.url, [
-            '--format=best',
-            '--retries=50'
-        ]);
+        //this.writeStream = fs.createWriteStream('current.txt');
+        this.proc = spawn('ffmpeg' , [
+            '-i', 'pipe:0',
+            '-f', 's16le',
+            '-bufsize', '12000k',
+            '-maxrate', '3000k',
+            '-ar',  `${48000/2}`,
+            '-af', 'volume=0.1',
+            'pipe:1'
 
-        videoStream.pipe(this.writeStream);
+        ],
+        {stdio: ['pipe', 'pipe', process.stderr]});
+        videoStream = ytdl(video.url, {filter:'audioonly'});
+        videoStream.pipe(this.proc.stdin);
+
         stream.then((fetched) => {
-            videoStream.on('info', (info) =>{
-                this.proc = spawn('ffmpeg' , [
-                    '-i', `${process.cwd()}/current.txt`,
-                    '-f', 's16le',
-                    '-ar',  `${48000/2}`,
-                    '-ac', '2',
-                    '-aq', '0',
-                    '-af', 'volume=0.1',
-                    'pipe:1'
-                ],
-                {stdio: ['pipe', 'pipe', 'pipe']});
-
-                this.proc.stdout.once('readable', () => {
-                    this.isLoading = false;
-                    this.currentSong = video;
-                    fetched.send(this.proc.stdout);
-                });
-
-                this.proc.on('close', (code, signal) => {
-                    this.currentSong = false;
-                    this.isLoading = true;
-                    if (signal === 'SIGHUP') { return; }
-
-                    if (this.isNextSong) { return this.play(this.nextSong); }
-
-                    if (!this.isNextSong && this.radioEnabled) {
-                        this.radio().then(() =>{
-                            this.skip();
-                        });
-                    }
-
-
-                });
-
-                this.proc.on('error', (e) => {
-                    this.context.log(`Error - ${pretty.render(e)}`)
-                });
-            });
+            this.proc.stdin.on('readable', () => {
+                this.currentSong = video;
+                this.isLoading = false;
+            })
+            fetched.send(this.proc.stdout);
         });
+
+        this.proc.stdout.on('end', (code, signal) => {
+            this.currentSong = false;
+            this.isLoading = true;
+            if (signal === 'SIGHUP') { return; }
+
+            if (this.isNextSong) { return this.play(this.nextSong); }
+
+            if (!this.isNextSong && this.radioEnabled) {
+                this.radio().then(() => {
+                    this.skip();
+                });
+            }
+        });
+
     }
 }

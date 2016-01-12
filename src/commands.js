@@ -3,7 +3,6 @@ let timer = require('node-timer');
 let request = require('request');
 let Throttler = require('./throttler');
 let BaseCommand = require('./base-command');
-let ytube = require('youtube-dl');
 let fs = require('fs');
 let pretty = require('prettyjson');
 let fork = require('child_process').fork;
