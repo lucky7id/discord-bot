@@ -75,11 +75,7 @@ module.exports = class AudioController {
     }
 
     skip () {
-        if (!this.isNextSong && !this.radioEnabled) { return; }
-        if (!this.isNextSong && this.radioEnabled) {
-            return this.radio().then(() => { this.play(this.nextSong, true) });
-        }
-        this.play(this.nextSong, true);
+        this.ytdl.kill('SIGINT');
     }
 
     getRandomSong () {
@@ -115,13 +111,9 @@ module.exports = class AudioController {
     }
 
     play (video, skipped) {
-        let videoStream;
         let stream = this.stream;
 
-        if (skipped) { this.proc.kill('SIGHUP'); }
-
-        //this.writeStream = fs.createWriteStream('current.txt');
-        this.proc = spawn('ffmpeg' , [
+        this.ffmpeg = spawn('ffmpeg' , [
             '-i', 'pipe:0',
             '-f', 's16le',
             '-bufsize', '12000k',
@@ -132,27 +124,27 @@ module.exports = class AudioController {
 
         ],
         {stdio: ['pipe', 'pipe', process.stderr]});
-        videoStream = ytdl(video.url, {filter:'audioonly'});
-        videoStream.pipe(this.proc.stdin);
+
+        this.ytdl = fork('./src/ytdl.js', [video.url], {silent:true});
+        this.ytdl.stdout.pipe(this.ffmpeg.stdin);
 
         stream.then((fetched) => {
-            this.proc.stdin.on('readable', () => {
+            this.ffmpeg.stdout.on('readable', () => {
                 this.currentSong = video;
                 this.isLoading = false;
             })
-            fetched.send(this.proc.stdout);
+            fetched.send(this.ffmpeg.stdout);
         });
 
-        this.proc.stdout.on('end', (code, signal) => {
+        this.ffmpeg.stdout.on('end', (code, signal) => {
             this.currentSong = false;
             this.isLoading = true;
-            if (signal === 'SIGHUP') { return; }
 
             if (this.isNextSong) { return this.play(this.nextSong); }
 
             if (!this.isNextSong && this.radioEnabled) {
                 this.radio().then(() => {
-                    this.skip();
+                    this.play(this.nextSong);
                 });
             }
         });
