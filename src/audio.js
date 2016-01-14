@@ -61,6 +61,8 @@ module.exports = class AudioController {
 
     set radioEnabled (val) {
         this.state.radio = val;
+        if (val === false) { return this.ytdl.kill('SIGINT'); }
+        this.handleSongEnd();
     }
 
     get stream () {
@@ -110,14 +112,14 @@ module.exports = class AudioController {
         return promise;
     }
 
-    play (video, skipped) {
+    play (video) {
         let stream = this.stream;
 
         this.ffmpeg = spawn('ffmpeg' , [
             '-i', 'pipe:0',
             '-f', 's16le',
-            '-bufsize', '12000k',
-            '-maxrate', '3000k',
+            '-bufsize', '6000k',
+            '-maxrate', '1200k',
             '-ar',  `${48000/2}`,
             '-af', 'volume=0.1',
             'pipe:1'
@@ -137,17 +139,20 @@ module.exports = class AudioController {
         });
 
         this.ffmpeg.stdout.on('end', (code, signal) => {
-            this.currentSong = false;
-            this.isLoading = true;
-
-            if (this.isNextSong) { return this.play(this.nextSong); }
-
-            if (!this.isNextSong && this.radioEnabled) {
-                this.radio().then(() => {
-                    this.play(this.nextSong);
-                });
-            }
+            this.handleSongEnd();
         });
+    }
 
+    handleSongEnd() {
+        this.currentSong = false;
+        this.isLoading = true;
+
+        if (this.isNextSong) { return this.play(this.nextSong); }
+
+        if (!this.isNextSong && this.radioEnabled) {
+            this.radio().then(() => {
+                this.play(this.nextSong);
+            });
+        }
     }
 }

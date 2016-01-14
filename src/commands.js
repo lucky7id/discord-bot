@@ -240,6 +240,10 @@ let startupCmds = [
         fn: function (params) {
             this.bot.audioCtrl.skip();
             this.removeCmdHistory(params);
+            this.bot.sendMessage({
+                to: params.channelID,
+                message: `<@${params.userID}> skipping...`
+            });
         }
     }, {
         name: '/queue',
