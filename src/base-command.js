@@ -90,15 +90,14 @@ let BaseCommands =  class BaseCommands extends Object {
     }
 
     parseArgs (str) {
-        let args = str.split(' ');
         let parsed = {};
 
-        for (let str of args) {
-            if (str.indexOf(':') === -1) { continue; }
-            let arg = str.split(':');
+        str.split(/(\w+:['"<][\w+\s,]*['">])/gi, (res) => {
+            if (res.indexOf(':') === -1) { return res; }
+            let arg = res.split(':');
 
-            parsed[arg[0]] = arg[1];
-        }
+            parsed[arg[0]] = arg[1].replace(/['"<>]/g, '');
+        });
 
         return parsed;
     }
