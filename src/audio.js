@@ -118,7 +118,7 @@ module.exports = class AudioController {
         this.ffmpeg = spawn('ffmpeg' , [
             '-i', 'pipe:0',
             '-f', 's16le',
-            '-bufsize', '6000k',
+            '-bufsize', '12000k',
             '-maxrate', '1200k',
             '-ar',  `${48000/2}`,
             '-af', 'volume=0.1',
