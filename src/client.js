@@ -94,7 +94,7 @@ module.exports = class Client extends Discord {
     }
 
     log() {
-        console.log(`\n\nSERVER LOG: ${Array.prototype.slice.apply(arguments)}\n`);
+        console.log(`\n\n${Array.prototype.slice.apply(arguments)} ${new Date().toJSON()}`);
 
         if (this.shell) {
             this.shell.prompt(true);

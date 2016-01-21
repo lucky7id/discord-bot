@@ -21,8 +21,8 @@ let hearbeat = setInterval(() => {
     let top = threadFinder.known.shift();
 
     process.send('heartbeat');
-    threadFinder.known = threadFinder.known.filter((val, i) => {
-        return i < 2;
+    threadFinder.known = threadFinder.known.filter((val, i, arr) => {
+        return i >= (arr.length - 3);
     });
 }, 3600000);
 

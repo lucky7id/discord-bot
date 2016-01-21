@@ -13,6 +13,7 @@ module.exports = class AudioController {
         this.state = {};
         this.context = context
         this.urlReg = /[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
+        this.gaurd = undefined;
     }
 
     set currentChannel (channel) {
@@ -61,8 +62,14 @@ module.exports = class AudioController {
 
     set radioEnabled (val) {
         this.state.radio = val;
-        if (val === false) { return this.ytdl.kill('SIGINT'); }
+
+        if (val === false) {
+            this.stopStreamGaurd();
+            return this.ytdl && this.ytdl.kill('SIGINT');
+        }
+
         this.handleSongEnd();
+        this.startStreamGaurd();
     }
 
     get stream () {
@@ -84,7 +91,21 @@ module.exports = class AudioController {
         return playlist[Math.floor(Math.random() * playlist.length)];
     }
 
+    startStreamGaurd () {
+        this.gaurd = setInterval(() => {
+            let currentBytes = this.ffmpeg.stdio[1].bytesRead;
+
+            if (this.bytesRead === currentBytes) { this.handleSongEnd(); }
+
+            this.bytesRead = currentBytes;
+        }, 5000)
+    }
+
+    stopStreamGaurd () {
+        clearInterval(this.gaurd);
+    }
     radio () {
+
         return this.addVideo(this.getRandomSong())
     }
 
@@ -146,6 +167,7 @@ module.exports = class AudioController {
     handleSongEnd() {
         this.currentSong = false;
         this.isLoading = true;
+        this.context.log('Cleaning Audio State');
 
         if (this.isNextSong) { return this.play(this.nextSong); }
 
