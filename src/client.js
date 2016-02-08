@@ -65,7 +65,8 @@ module.exports = class Client extends Discord {
         if (id) { return members[id]; }
 
         for (let id in members) {
-            if (members[id].user.username.toLowerCase() === user.trim()) {
+            let username = members[id].user.username;
+            if (username.toLowerCase() === user.trim().toLowerCase()) {
                 return members[id];
             }
         }

@@ -438,7 +438,7 @@ let startupCmds = [
             let user = this.bot.find(params.message, params);
             let spoof = Object.assign({}, params);
             let msg;
-
+            console.log(user);
             user.user.blacklist = this.bot.secrets.blacklist.indexOf(user.user.id) !== -1;
             spoof.user = user.user.username;
             spoof.userID = user.user.id;
@@ -500,6 +500,16 @@ let startupCmds = [
             let user = this.bot.find(parsed.user, params);
 
             this.bot.removeBlacklist(user.user.id, true);
+        }
+    }, {
+        name: '/eval',
+        description: '',
+        fn: function (params) {
+            let result = (new Function( `"use strict"; return ${params.message}`)).call(this);
+            this.bot.sendMessage({
+                to: params.channelID,
+                message: result
+            });
         }
     }
 ];

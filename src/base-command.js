@@ -92,7 +92,7 @@ let BaseCommands =  class BaseCommands extends Object {
     parseArgs (str) {
         let parsed = {};
 
-        str.split(/(\w+:['"<][\w+\s,]*['">])/gi, (res) => {
+        str.replace(/(\w+:['"<][\w+\s\/,]*['">])/gi, (res) => {
             if (res.indexOf(':') === -1) { return res; }
             let arg = res.split(':');
 
