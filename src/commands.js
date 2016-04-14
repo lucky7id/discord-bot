@@ -112,8 +112,7 @@ let startupCmds = [
         fn: function (params) {
             this.bot.uploadFile({
                 to: params.channelID,
-                file: fs.createReadStream('./assets/facesit.jpg'),
-                fileName: 'facesit.jpg'
+                file: './assets/facesit.jpg'
             }, (response) => {
                 this.removeCmdHistory(params);
             });
@@ -132,8 +131,7 @@ let startupCmds = [
 
                 this.bot.uploadFile({
                     to: params.channelID,
-                    file: fs.createReadStream(`./assets/${desu}`),
-                    fileName: desu
+                    file: `./assets/${desu}`
                 }, (response) => {
                     this.removeCmdHistory(params);
                 });
@@ -153,8 +151,7 @@ let startupCmds = [
 
                 this.bot.uploadFile({
                     to: params.channelID,
-                    file: fs.createReadStream(`./assets/${desu}`),
-                    fileName: desu
+                    file: `./assets/${desu}`
                 }, (response) => {
                     this.removeCmdHistory(params);
                 });
@@ -191,8 +188,7 @@ let startupCmds = [
         fn: function (params) {
             this.bot.uploadFile({
                 to: params.channelID,
-                file: fs.createReadStream('./assets/triggered.gif'),
-                fileName: 'triggered.gif'
+                file: './assets/triggered.gif'
             }, (response) => {
                 this.bot.log(response);
             });
