@@ -58,7 +58,7 @@ class ThreadFinder {
         });
     }
 
-    parse (res) {
+    parse (res = []) {
         return res.map(page => {
             return page.threads.map(thread => {
                 return { com: thread.com, no: thread.no};
