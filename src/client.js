@@ -27,6 +27,9 @@ module.exports = class Client extends Discord {
         this.shell = shell;
         this.on('message', this.handleMessage);
         this.on('presence', this.handlePresence);
+        this.on('ready', (...params) => {
+            console.log(params);
+        })
     }
 
     handleMessage(user, userID, channelID, message, rawEvent) {
