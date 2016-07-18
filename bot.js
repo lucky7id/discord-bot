@@ -54,9 +54,8 @@ rl.on('line', function(line) {
         //     bot.log(JSON.stringify(arguments));
         // });
         //
-
         Object.keys(bot).forEach(key => {
-            if (typeOf bot[key] === 'function') return;
+            if (typeof bot[key] === 'function') return;
             console.log(bot[key])
         });
     }
