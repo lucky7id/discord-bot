@@ -45,13 +45,19 @@ rl.on('line', function(line) {
     }
 
     if (/^state$/.test(line)) {
-        let output = {
-            servers: bot.servers,
-            connected: bot.connected,
-        };
+        // let output = {
+        //     servers: bot.servers,
+        //     connected: bot.connected,
+        // };
+        //
+        // fs.writeFile('./state.json', JSON.stringify(bot.servers), () => {
+        //     bot.log(JSON.stringify(arguments));
+        // });
+        //
 
-        fs.writeFile('./state.json', JSON.stringify(bot.servers), () => {
-            bot.log(JSON.stringify(arguments));
+        Object.keys(bot).forEach(key => {
+            if (typeOf bot[key] === 'function') return;
+            console.log(bot[key])
         });
     }
 

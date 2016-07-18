@@ -34,6 +34,13 @@ module.exports = class Client extends Discord {
 
     handleMessage(user, userID, channelID, message, rawEvent) {
         if (user === this.username) { return; }
+        if (message === "ping") {
+            this.sendMessage({
+                to: channelID,
+                message: "pong"
+            });
+        }
+
         if (this.commands.getCmd(message)) {
             let params = getParamsFromArgs(user, userID, channelID, message, rawEvent);
 
