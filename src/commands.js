@@ -346,7 +346,7 @@ let startupCmds = [
     }, {
         name: '/notify',
         allowed: ['*'],
-        description: '/notify <threadWatcherId> sends you a PM when sh0taBot finds a thread matching the selected keywords',
+        description: '/notify <threadWatcherId> sends you a PM when Yuki-Bot finds a thread matching the selected keywords',
         fn: function (params) {
             let id = /(\d+)\b/.exec(params.message);
             let watch;
